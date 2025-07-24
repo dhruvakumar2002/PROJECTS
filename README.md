@@ -24,4 +24,4 @@ This project enables real-time audio and video recording and live streaming from
 
 ## Directory Structure
 - `client/` — React + Tailwind web UI
-- `server/` — Node.js + Express backend 
+- `server/` — Node.js + Express backend # PROJECTS
