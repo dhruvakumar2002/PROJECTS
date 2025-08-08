@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001';
+const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001/'; //http://10.28.159.141:5001
 const ROOM_ID = 'test-room';
 
 // Quality presets for adaptive streaming
@@ -23,6 +23,12 @@ const QUALITY_PRESETS = {
     audio: { sampleRate: 22050, channelCount: 1, bitrate: 32000 }
   }
 };
+
+// Helper to prefer rear camera
+const withRearCamera = (videoConstraints) => ({
+  ...videoConstraints,
+  facingMode: { exact: 'environment' }
+});
 
 const LiveStream = () => {
   const [isStreamer, setIsStreamer] = useState(false);
@@ -50,6 +56,58 @@ const LiveStream = () => {
   const qualityCheckInterval = useRef(null);
   const networkStats = useRef({ rtt: 0, packetLoss: 0, bandwidth: 0 });
   const chunksRef = useRef([]); // Use ref to store chunks for recording
+  const wakeLockRef = useRef(null); // Screen Wake Lock sentinel
+
+  // Auto-start when deep link param autoStart=1 is present (run once on mount)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldAutoStart = params.get('autoStart') === '1';
+    if (shouldAutoStart) {
+      setStatus('Auto starting live stream + record...');
+      setTimeout(() => {
+        if (typeof startWebRTC === 'function') {
+          startWebRTC(true, true);
+        }
+      }, 300);
+    }
+    // eslint-disable-next-line no-useless-return
+    return;
+  }, []);
+
+  // Keep the screen awake during streaming/recording to avoid suspension on mobile
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator && !wakeLockRef.current) {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        wakeLockRef.current.addEventListener('release', () => {
+          // Wake lock released (screen may sleep again)
+        });
+      }
+    } catch (err) {
+      // Wake Lock can fail if not allowed or on unsupported browsers
+      console.warn('Wake Lock request failed:', err?.message || err);
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    try {
+      if (wakeLockRef.current) {
+        await wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    } catch {}
+  };
+
+  // Re-acquire wake lock when tab becomes visible again (common on Android Chrome)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && (isStreamer || isRecording)) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [isStreamer, isRecording]);
 
   // Handle remote stream changes
   useEffect(() => {
@@ -371,6 +429,10 @@ const LiveStream = () => {
       socket.current.on('streamer-available', (data) => {
         updateDebugInfo(`Streamer available: ${data.message} (${data.streamerCount} streamer(s))`);
         setStatus('Streamer detected! Waiting for connection...');
+        // Ask streamer to send an offer to this viewer immediately
+        if (!streamer) {
+          socket.current.emit('signal', { room: ROOM_ID, connectionId: null, data: { type: 'viewer-ready' } });
+        }
       });
 
       // Handle no streamers available
@@ -399,6 +461,25 @@ const LiveStream = () => {
             updateDebugInfo('Error creating offer: ' + err.message);
             setStatus('Error creating offer');
           }
+        }
+      });
+
+      // Streamer responds to server's request to send an offer to a viewer
+      socket.current.on('request-offer', async ({ viewerId, room }) => {
+        if (!streamer) return;
+        try {
+          if (pc.current.signalingState !== 'stable') return;
+          updateDebugInfo(`Request-offer received for viewer ${viewerId}`);
+          const offer = await pc.current.createOffer();
+          await pc.current.setLocalDescription(offer);
+          socket.current.emit('signal', {
+            room: room || ROOM_ID,
+            connectionId: connectionId.current,
+            data: { type: 'offer', sdp: offer.sdp }
+          });
+          updateDebugInfo('Offer sent in response to request-offer');
+        } catch (err) {
+          console.error('Error responding to request-offer:', err);
         }
       });
 
@@ -477,6 +558,12 @@ const LiveStream = () => {
         }
       };
 
+      // Improve autoplay reliability on viewer side
+      if (!streamer && remoteVideo.current) {
+        remoteVideo.current.muted = true;
+        remoteVideo.current.play().catch(() => {});
+      }
+
       pc.current.ontrack = (event) => {
         updateDebugInfo(`Received remote track: ${event.track.kind} (${event.track.id})`);
         updateDebugInfo(`Stream ID: ${event.streams[0].id}, Tracks: ${event.streams[0].getTracks().length}`);
@@ -539,16 +626,29 @@ const LiveStream = () => {
         try {
           setStatus('Accessing camera/microphone...');
           updateDebugInfo('Requesting media access...');
-          await getCameras(); // Get available cameras first
-          
-          // Start with medium quality
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: QUALITY_PRESETS.medium.video,
+          await getCameras();
+
+          // Prefer rear camera; fallback to default if not available
+          let constraints = {
+            video: withRearCamera(QUALITY_PRESETS.medium.video),
             audio: QUALITY_PRESETS.medium.audio
-          });
-          
+          };
+          let stream;
+          try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+          } catch (e) {
+            updateDebugInfo('Rear camera exact match failed, falling back to default camera');
+            constraints = {
+              video: { ...QUALITY_PRESETS.medium.video, facingMode: 'environment' },
+              audio: QUALITY_PRESETS.medium.audio
+            };
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+          }
+
           setLocalStream(stream);
           localVideo.current.srcObject = stream;
+          // Try to prevent the device from sleeping while streaming
+          requestWakeLock();
           updateDebugInfo('Local media stream obtained');
           stream.getTracks().forEach((track) => pc.current.addTrack(track, stream));
           updateDebugInfo('Tracks added to peer connection');
@@ -638,7 +738,7 @@ const LiveStream = () => {
       const filename = `live-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${selectedMimeType.includes('webm') ? 'webm' : 'mp4'}`;
       formData.append('file', blob, filename);
       try {
-        const response = await fetch('http://10.28.159.141:5001/api/recordings', { 
+        const response = await fetch('http://10.28.159.141:5001/api/recordings', { //http://10.28.159.141:5001/
           method: 'POST', 
           body: formData 
         });
@@ -663,6 +763,8 @@ const LiveStream = () => {
   };
 
   const stopStreaming = () => {
+    // Release wake lock when stopping
+    releaseWakeLock();
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
     }
@@ -693,151 +795,170 @@ const LiveStream = () => {
     connectionId.current = null;
   };
 
-  const openFullscreen = (videoRef, title) => {
-    if (!videoRef.current) return;
-    
-    // Create fullscreen container
-    const fullscreenContainer = document.createElement('div');
-    fullscreenContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: black;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    `;
-    
-    // Create title bar
-    const titleBar = document.createElement('div');
-    titleBar.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 10px 20px;
-      font-size: 18px;
-      font-weight: bold;
-      text-align: center;
-      z-index: 10001;
-    `;
-    titleBar.textContent = title;
-    
-    // Create video container
-    const videoContainer = document.createElement('div');
-    videoContainer.style.cssText = `
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-    `;
-    
-    // Clone the video element
-    const video = videoRef.current.cloneNode(true);
-    video.style.cssText = `
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-    `;
-    video.controls = true;
-    
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = '✕';
-    closeButton.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 10002;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
-    
-    // Add fullscreen toggle button
-    const fullscreenButton = document.createElement('button');
-    fullscreenButton.innerHTML = '⛶';
-    fullscreenButton.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 70px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 10002;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
-    
-    // Add event listeners
-    closeButton.addEventListener('click', () => {
-      document.body.removeChild(fullscreenContainer);
-    });
-    
-    fullscreenButton.addEventListener('click', () => {
-      if (video.requestFullscreen) {
-        video.requestFullscreen();
-      } else if (video.webkitRequestFullscreen) {
-        video.webkitRequestFullscreen();
-      } else if (video.msRequestFullscreen) {
-        video.msRequestFullscreen();
-      }
-    });
-    
-    // Close on escape key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        document.body.removeChild(fullscreenContainer);
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    
-    // Add elements to container
-    videoContainer.appendChild(video);
-    fullscreenContainer.appendChild(titleBar);
-    fullscreenContainer.appendChild(videoContainer);
-    fullscreenContainer.appendChild(closeButton);
-    fullscreenContainer.appendChild(fullscreenButton);
-    
-    // Add to body
-    document.body.appendChild(fullscreenContainer);
-    
-    // Focus on video for keyboard controls
-    video.focus();
+  const openFullscreen = (videoRef) => {
+    const el = videoRef.current;
+    if (!el) return;
+  
+    // Try native fullscreen first
+    if (el.requestFullscreen) {
+      el.requestFullscreen().catch(() => {});
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen(); // Safari (non-iOS)
+    } else if (el.msRequestFullscreen) {
+      el.msRequestFullscreen(); // IE/Edge legacy
+    } else if (el.webkitEnterFullscreen) {
+      // iOS Safari fallback (on <video> only)
+      el.webkitEnterFullscreen();
+    }
+  
+    // Nudge playback (some browsers require a user gesture)
+    el.play().catch(() => {});
   };
+  // const openFullscreen = (videoRef, title) => {
+  //   if (!videoRef.current) return;
+    
+  //   // Create fullscreen container
+  //   const fullscreenContainer = document.createElement('div');
+  //   fullscreenContainer.style.cssText = `
+  //     position: fixed;
+  //     top: 0;
+  //     left: 0;
+  //     width: 100vw;
+  //     height: 100vh;
+  //     background: black;
+  //     z-index: 9999;
+  //     display: flex;
+  //     flex-direction: column;
+  //     align-items: center;
+  //     justify-content: center;
+  //   `;
+    
+  //   // Create title bar
+  //   const titleBar = document.createElement('div');
+  //   titleBar.style.cssText = `
+  //     position: absolute;
+  //     top: 0;
+  //     left: 0;
+  //     right: 0;
+  //     background: rgba(0, 0, 0, 0.8);
+  //     color: white;
+  //     padding: 10px 20px;
+  //     font-size: 18px;
+  //     font-weight: bold;
+  //     text-align: center;
+  //     z-index: 10001;
+  //   `;
+  //   titleBar.textContent = title;
+    
+  //   // Create video container
+  //   const videoContainer = document.createElement('div');
+  //   videoContainer.style.cssText = `
+  //     flex: 1;
+  //     display: flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //     width: 100%;
+  //     height: 100%;
+  //   `;
+    
+  //   // Clone the video element
+  //   const video = videoRef.current.cloneNode(true);
+  //   video.style.cssText = `
+  //     max-width: 100%;
+  //     max-height: 100%;
+  //     width: auto;
+  //     height: auto;
+  //   `;
+  //   video.controls = true;
+    
+  //   // Add close button
+  //   const closeButton = document.createElement('button');
+  //   closeButton.innerHTML = '✕';
+  //   closeButton.style.cssText = `
+  //     position: absolute;
+  //     top: 20px;
+  //     right: 20px;
+  //     background: rgba(0, 0, 0, 0.7);
+  //     color: white;
+  //     border: none;
+  //     border-radius: 50%;
+  //     width: 40px;
+  //     height: 40px;
+  //     font-size: 20px;
+  //     cursor: pointer;
+  //     z-index: 10002;
+  //     display: flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //   `;
+    
+  //   // Add fullscreen toggle button
+  //   const fullscreenButton = document.createElement('button');
+  //   fullscreenButton.innerHTML = '⛶';
+  //   fullscreenButton.style.cssText = `
+  //     position: absolute;
+  //     top: 20px;
+  //     right: 70px;
+  //     background: rgba(0, 0, 0, 0.7);
+  //     color: white;
+  //     border: none;
+  //     border-radius: 50%;
+  //     width: 40px;
+  //     height: 40px;
+  //     font-size: 20px;
+  //     cursor: pointer;
+  //     z-index: 10002;
+  //     display: flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //   `;
+    
+  //   // Add event listeners
+  //   closeButton.addEventListener('click', () => {
+  //     document.body.removeChild(fullscreenContainer);
+  //   });
+    
+  //   fullscreenButton.addEventListener('click', () => {
+  //     if (video.requestFullscreen) {
+  //       video.requestFullscreen();
+  //     } else if (video.webkitRequestFullscreen) {
+  //       video.webkitRequestFullscreen();
+  //     } else if (video.msRequestFullscreen) {
+  //       video.msRequestFullscreen();
+  //     }
+  //   });
+    
+  //   // Close on escape key
+  //   const handleEscape = (e) => {
+  //     if (e.key === 'Escape') {
+  //       document.body.removeChild(fullscreenContainer);
+  //       document.removeEventListener('keydown', handleEscape);
+  //     }
+  //   };
+  //   document.addEventListener('keydown', handleEscape);
+    
+  //   // Add elements to container
+  //   videoContainer.appendChild(video);
+  //   fullscreenContainer.appendChild(titleBar);
+  //   fullscreenContainer.appendChild(videoContainer);
+  //   fullscreenContainer.appendChild(closeButton);
+  //   fullscreenContainer.appendChild(fullscreenButton);
+    
+  //   // Add to body
+  //   document.body.appendChild(fullscreenContainer);
+    
+  //   // Focus on video for keyboard controls
+  //   video.focus();
+  // };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-4 text-blue-700">Live Stream</h2>
+    <div className="max-w-4xl mx-auto mt-10 bg-slate-800 rounded-lg shadow p-6 text-gray-100">
+      <h2 className="text-2xl font-bold mb-4 text-sky-400">Live Stream</h2>
       
-      <div className="mb-4 p-3 bg-gray-100 rounded">
-        <p className="text-sm text-gray-700">Status: {status}</p>
-        <p className="text-sm text-gray-700">Quality: {currentQuality} {isAudioOnly && '(Audio Only)'}</p>
-        <p className="text-sm text-gray-700">Network: {networkQuality}</p>
+      <div className="mb-4 p-3 bg-slate-700 rounded">
+        <p className="text-sm text-gray-200">Status: {status}</p>
+        <p className="text-sm text-gray-200">Quality: {currentQuality} {isAudioOnly && '(Audio Only)'}</p>
+        <p className="text-sm text-gray-200">Network: {networkQuality}</p>
         {cameras.length > 1 && (
           <p className="text-xs text-gray-500 mt-1">
             Available cameras: {cameras.length} | Current: {cameras[currentCameraIndex]?.label || 'Camera ' + (currentCameraIndex + 1)}
@@ -922,7 +1043,7 @@ const LiveStream = () => {
               <h3 className="font-semibold">Your Stream (Local)</h3>
               <button
                 onClick={() => openFullscreen(localVideo, 'Local Stream')}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm shadow flex items-center gap-1"
+                className="px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-sm shadow flex items-center gap-1"
               >
                 <span>⛶</span>
                 <span>Fullscreen</span>
@@ -934,12 +1055,12 @@ const LiveStream = () => {
                 autoPlay
                 playsInline
                 muted
-                className="rounded-lg shadow-lg border-2 border-blue-200 w-full h-64 bg-black"
+                className="rounded-lg shadow-lg border-2 border-sky-800 w-full h-64 bg-black"
               />
             </div>
             {isAudioOnly && (
-              <div className="mt-2 p-2 bg-yellow-100 rounded text-center">
-                <p className="text-yellow-800 text-sm">Audio Only Mode - Poor Network Detected</p>
+              <div className="mt-2 p-2 bg-amber-100/10 rounded text-center">
+                <p className="text-amber-300 text-sm">Audio Only Mode - Poor Network Detected</p>
               </div>
             )}
           </div>
@@ -951,7 +1072,7 @@ const LiveStream = () => {
             {remoteStream && (
               <button
                 onClick={() => openFullscreen(remoteVideo, 'Remote Stream')}
-                className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm shadow flex items-center gap-1"
+                className="px-3 py-1 bg-violet-600 hover:bg-violet-700 text-white rounded text-sm shadow flex items-center gap-1"
               >
                 <span>⛶</span>
                 <span>Fullscreen</span>
@@ -963,7 +1084,7 @@ const LiveStream = () => {
               ref={remoteVideo}
               autoPlay
               playsInline
-              className="rounded-lg shadow-lg border-2 border-blue-200 w-full h-64 bg-black"
+              className="rounded-lg shadow-lg border-2 border-violet-800 w-full h-64 bg-black"
               onLoadStart={() => updateDebugInfo('Remote video load started')}
               onLoadedData={() => updateDebugInfo('Remote video data loaded')}
               onCanPlayThrough={() => updateDebugInfo('Remote video can play through')}
@@ -976,13 +1097,13 @@ const LiveStream = () => {
             />
           </div>
           {!remoteStream && !isStreamer && (
-            <div className="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
-              <p className="text-gray-500">Waiting for stream...</p>
+            <div className="flex items-center justify-center h-64 bg-slate-700 rounded-lg">
+              <p className="text-gray-300">Waiting for stream...</p>
             </div>
           )}
           {remoteStream && (
-            <div className="mt-2 p-2 bg-green-100 rounded text-center">
-              <p className="text-green-800 text-sm">
+            <div className="mt-2 p-2 bg-emerald-100/10 rounded text-center">
+              <p className="text-emerald-300 text-sm">
                 Stream active: {remoteStream.getTracks().length} tracks | 
                 Video: {remoteStream.getVideoTracks().length} | 
                 Audio: {remoteStream.getAudioTracks().length}
@@ -993,13 +1114,13 @@ const LiveStream = () => {
       </div>
 
       {isRecording && (
-        <div className="mt-4 p-3 bg-red-100 rounded">
-          <p className="text-red-700 text-sm">🔴 Recording in progress...</p>
+        <div className="mt-4 p-3 bg-rose-100/10 rounded">
+          <p className="text-rose-300 text-sm">🔴 Recording in progress...</p>
         </div>
       )}
 
       {/* Debug Information */}
-      <div className="mt-6 p-4 bg-gray-900 text-green-400 rounded text-xs font-mono max-h-40 overflow-y-auto">
+      <div className="mt-6 p-4 bg-slate-900 text-green-300 rounded text-xs font-mono max-h-40 overflow-y-auto">
         <h4 className="font-semibold mb-2">Debug Info:</h4>
         <pre>{debugInfo || 'No debug info yet...'}</pre>
       </div>

@@ -1,3 +1,22 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+
+/* App theme: soft dark (not pitch black) */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0f172a; /* slate-900 */
+  color: #e5e7eb; /* gray-200 */
+}
+
+.card {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #334155; /* slate-700 */
+}
+
+.surface {
+  background-color: #111827; /* gray-900 */
+}

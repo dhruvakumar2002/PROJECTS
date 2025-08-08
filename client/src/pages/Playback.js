@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const API_URL = 'http://10.28.159.141:5001/api/recordings';
+const API_URL = 'http://10.28.159.141:5001/api/recordings'; //http://10.28.159.141:5001/
 
 // Quality options for download
 const QUALITY_OPTIONS = [
@@ -190,12 +190,12 @@ const Playback = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white rounded-lg shadow-lg p-8">
-      <h2 className="text-3xl font-bold mb-6 text-blue-700">Playback Recordings</h2>
+    <div className="max-w-4xl mx-auto mt-10 bg-slate-800 rounded-lg shadow-lg p-8 text-gray-100">
+      <h2 className="text-3xl font-bold mb-6 text-sky-400">Playback Recordings</h2>
       
       {loading ? (
         <div className="flex justify-center items-center h-32">
-          <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+          <svg className="animate-spin h-8 w-8 text-sky-400" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
@@ -203,7 +203,7 @@ const Playback = () => {
       ) : (
         <div className="space-y-4">
           {recordings.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-300 py-8">
               <p className="text-lg">No recordings found.</p>
               <p className="text-sm">Record some videos to see them here!</p>
             </div>
@@ -211,14 +211,14 @@ const Playback = () => {
             recordings.map((rec) => (
               <div
                 key={rec._id}
-                className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+                className="bg-slate-700 rounded-lg shadow-md p-6 border border-slate-600 hover:shadow-lg transition-shadow"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                    <h3 className="font-semibold text-lg text-gray-100 mb-2">
                       {rec.filename || `Recording ${rec._id.slice(-8)}`}
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-300">
                       <div>
                         <span className="font-medium">Size:</span> {formatBytes(rec.length)}
                       </div>
@@ -237,7 +237,7 @@ const Playback = () => {
                   <div className="flex gap-2 mt-4 md:mt-0">
                     <button
                       onClick={() => playInFullscreen(rec._id)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>▶️</span>
                       <span>Play Fullscreen</span>
@@ -245,7 +245,7 @@ const Playback = () => {
                     
                     <button
                       onClick={() => setSelected(rec._id)}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>📺</span>
                       <span>Play in Player</span>
@@ -253,7 +253,7 @@ const Playback = () => {
                     
                     <button
                       onClick={() => handleDownload(rec._id)}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>⬇️</span>
                       <span>Download</span>
@@ -262,7 +262,7 @@ const Playback = () => {
                     <button
                       onClick={() => deleteRecording(rec._id)}
                       disabled={deleting === rec._id}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       {deleting === rec._id ? (
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -283,30 +283,30 @@ const Playback = () => {
       )}
       
       {selected && (
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-          <h3 className="font-semibold text-xl mb-4 text-gray-800">Now Playing</h3>
+        <div className="mt-8 p-6 bg-slate-700 rounded-lg">
+          <h3 className="font-semibold text-xl mb-4 text-gray-100">Now Playing</h3>
           <video
             src={`${API_URL}/${selected}`}
             controls
             autoPlay
-            className="rounded-lg border w-full h-96 bg-black shadow-lg"
+            className="rounded-lg border border-slate-600 w-full h-96 bg-black shadow-lg"
           />
         </div>
       )}
 
       {/* Quality Selection Modal */}
       {showQualityModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">Select Download Quality</h3>
-            <p className="text-gray-600 mb-6">Choose the quality for your download:</p>
+        <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-slate-700">
+            <h3 className="text-xl font-bold mb-4 text-gray-100">Select Download Quality</h3>
+            <p className="text-gray-300 mb-6">Choose the quality for your download:</p>
             
             <div className="space-y-3">
               {QUALITY_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => downloadWithQuality(option.value)}
-                  className="w-full p-4 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                  className="w-full p-4 text-left border border-slate-700 rounded-lg hover:bg-slate-700/60 hover:border-slate-500 transition-colors text-gray-100"
                 >
                   <div className="font-semibold text-gray-800">{option.label}</div>
                   <div className="text-sm text-gray-600">{option.description}</div>
@@ -316,7 +316,7 @@ const Playback = () => {
             
             <button
               onClick={() => setShowQualityModal(false)}
-              className="mt-6 w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+              className="mt-6 w-full px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
             >
               Cancel
             </button>

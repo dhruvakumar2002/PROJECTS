@@ -1,0 +1,146 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.streamrecordapp"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="21"
+9        android:targetSdkVersion="33" />
+10
+11    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+11-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/debug/AndroidManifest.xml:5:5-77
+11-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/debug/AndroidManifest.xml:5:22-75
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:4:5-67
+12-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:4:22-64
+13    <uses-permission android:name="android.permission.WAKE_LOCK" />
+13-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:5:5-68
+13-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:5:22-65
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:6:5-77
+14-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:6:22-74
+15    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+15-->[com.facebook.flipper:flipper:0.182.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/cb54c665a8878faee52400147a753442/transformed/jetified-flipper-0.182.0/AndroidManifest.xml:16:5-76
+15-->[com.facebook.flipper:flipper:0.182.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/cb54c665a8878faee52400147a753442/transformed/jetified-flipper-0.182.0/AndroidManifest.xml:16:22-73
+16
+17    <application
+17-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:8:5-51:19
+18        android:name="com.streamrecordapp.MainApplication"
+18-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:9:7-38
+19        android:allowBackup="false"
+19-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:13:7-34
+20        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+20-->[androidx.core:core:1.7.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/9a512c2d5cb63d15686332f1e451936f/transformed/core-1.7.0/AndroidManifest.xml:24:18-86
+21        android:debuggable="true"
+22        android:icon="@mipmap/ic_launcher"
+22-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:11:7-41
+23        android:label="@string/app_name"
+23-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:10:7-39
+24        android:roundIcon="@mipmap/ic_launcher_round"
+24-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:12:7-52
+25        android:theme="@style/AppTheme"
+25-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:14:7-38
+26        android:usesCleartextTraffic="true" >
+26-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:15:7-42
+27        <activity
+27-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/debug/AndroidManifest.xml:11:9-111
+28            android:name="com.facebook.react.devsupport.DevSettingsActivity"
+28-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/debug/AndroidManifest.xml:11:19-83
+29            android:exported="false" />
+29-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/debug/AndroidManifest.xml:11:84-108
+30        <activity
+30-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:16:7-27:18
+31            android:name="com.streamrecordapp.MainActivity"
+31-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:17:9-37
+32            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+32-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:19:9-118
+33            android:exported="true"
+33-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:22:9-32
+34            android:label="@string/app_name"
+34-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:18:9-41
+35            android:launchMode="singleTask"
+35-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:20:9-40
+36            android:windowSoftInputMode="adjustResize" >
+36-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:21:9-51
+37            <intent-filter>
+37-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:23:9-26:25
+38                <action android:name="android.intent.action.MAIN" />
+38-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:24:13-65
+38-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:24:21-62
+39
+40                <category android:name="android.intent.category.LAUNCHER" />
+40-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:25:13-73
+40-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:25:23-70
+41            </intent-filter>
+42        </activity>
+43        <activity
+43-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:29:7-32:42
+44            android:name="com.streamrecordapp.WebActivity"
+44-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:30:9-36
+45            android:exported="false"
+45-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:31:9-33
+46            android:launchMode="singleTop" />
+46-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:32:9-39
+47
+48        <service
+48-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:34:7-38:59
+49            android:name="com.streamrecordapp.VolumeService"
+49-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:35:11-40
+50            android:enabled="true"
+50-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:36:11-33
+51            android:exported="false"
+51-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:37:11-35
+52            android:foregroundServiceType="mediaPlayback" />
+52-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:38:11-56
+53        <service
+53-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:40:7-49:17
+54            android:name="com.streamrecordapp.StartLiveTileService"
+54-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:41:11-47
+55            android:exported="true"
+55-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:45:11-34
+56            android:icon="@mipmap/ic_launcher"
+56-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:43:11-45
+57            android:label="Start Live"
+57-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:42:11-37
+58            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" >
+58-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:44:11-75
+59            <intent-filter>
+59-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:46:9-48:25
+60                <action android:name="android.service.quicksettings.action.QS_TILE" />
+60-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:47:11-81
+60-->/Users/dhruva_kumar/Work Space/final project/mobile/android/app/src/main/AndroidManifest.xml:47:19-78
+61            </intent-filter>
+62        </service>
+63
+64        <meta-data
+64-->[com.facebook.soloader:soloader:0.10.5] /Users/dhruva_kumar/.gradle/caches/transforms-3/666c51bdf602ccddd2aaf4a3da02f4a5/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:12:9-14:37
+65            android:name="com.facebook.soloader.enabled"
+65-->[com.facebook.soloader:soloader:0.10.5] /Users/dhruva_kumar/.gradle/caches/transforms-3/666c51bdf602ccddd2aaf4a3da02f4a5/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:13:13-57
+66            android:value="false" />
+66-->[com.facebook.soloader:soloader:0.10.5] /Users/dhruva_kumar/.gradle/caches/transforms-3/666c51bdf602ccddd2aaf4a3da02f4a5/transformed/jetified-soloader-0.10.5/AndroidManifest.xml:14:13-34
+67
+68        <provider
+68-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:26:9-34:20
+69            android:name="androidx.startup.InitializationProvider"
+69-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:27:13-67
+70            android:authorities="com.streamrecordapp.androidx-startup"
+70-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:28:13-68
+71            android:exported="false" >
+71-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:29:13-37
+72            <meta-data
+72-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:31:13-33:52
+73                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+73-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:32:17-75
+74                android:value="androidx.startup" />
+74-->[androidx.emoji2:emoji2:1.0.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/4b7125a79a6bd3653c9c8c973d894f1d/transformed/jetified-emoji2-1.0.0/AndroidManifest.xml:33:17-49
+75            <meta-data
+75-->[androidx.lifecycle:lifecycle-process:2.4.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/79164a1c24ef07ccc667ae77b9f01c42/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:31:13-33:52
+76                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+76-->[androidx.lifecycle:lifecycle-process:2.4.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/79164a1c24ef07ccc667ae77b9f01c42/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:32:17-78
+77                android:value="androidx.startup" />
+77-->[androidx.lifecycle:lifecycle-process:2.4.0] /Users/dhruva_kumar/.gradle/caches/transforms-3/79164a1c24ef07ccc667ae77b9f01c42/transformed/jetified-lifecycle-process-2.4.0/AndroidManifest.xml:33:17-49
+78        </provider>
+79    </application>
+80
+81</manifest>
