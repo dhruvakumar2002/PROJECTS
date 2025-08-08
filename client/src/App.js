@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import LiveStream from './pages/LiveStream';
+import Login from './pages/Login';
 import Playback from './pages/Playback';
 import io from 'socket.io-client';
 
@@ -89,6 +90,7 @@ function App() {
           </div>
         </nav>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/live" element={<LiveStream remoteStream={remoteStream} />} />
           
           <Route path="/playback" element={<Playback />} />

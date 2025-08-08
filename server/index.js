@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient } = require('mongodb');
 const { router: recordingsRouter, setGFS } = require('./routes/recordings');
 
@@ -25,7 +26,39 @@ app.use((req, res, next) => {
 });
 
 // Mount the recordings router immediately (will work even without MongoDB)
-app.use('/api/recordings', recordingsRouter);
+//app.use('/api/recordings', recordingsRouter);
+
+// Auth middleware
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const BASIC_USER = process.env.AUTH_USER || 'Mainuser';
+const BASIC_PASS = process.env.AUTH_PASS || 'Dnewpassk';
+
+function ensureAuth(req, res, next) {
+  const auth = req.headers.authorization || '';
+  const headerToken = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  const queryToken = req.query && req.query.token ? req.query.token : null;
+  const token = headerToken || queryToken;
+  if (!token) return res.status(401).json({ error: 'Missing token' });
+  try {
+    jwt.verify(token, JWT_SECRET);
+    return next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// Login route to obtain JWT
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (username === BASIC_USER && password === BASIC_PASS) {
+    const token = jwt.sign({ sub: username }, JWT_SECRET, { expiresIn: '12h' });
+    return res.json({ token });
+  }
+  return res.status(401).json({ error: 'Invalid credentials' });
+});
+
+// Protect recordings API
+app.use('/api/recordings', ensureAuth, recordingsRouter);
 console.log('Recordings router mounted at /api/recordings');
 
 // MongoDB connection
@@ -34,7 +67,9 @@ let gfs;
 
 async function connectToMongoDB() {
   try {
-    mongoClient = new MongoClient('mongodb://localhost:27017');
+    //    mongoClient = new MongoClient('mongodb://localhost:27017');
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    mongoClient = new MongoClient(mongoUri);
     await mongoClient.connect();
     const db = mongoClient.db('streaming');
 
@@ -54,6 +89,17 @@ connectToMongoDB();
 const rooms = new Map(); // roomId -> { streamers: Set, viewers: Set }
 
 // WebRTC signaling
+io.use((socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    if (!token) return next(new Error('No auth token'));
+    jwt.verify(token, JWT_SECRET);
+    return next();
+  } catch (e) {
+    return next(new Error('Auth failed'));
+  }
+});
+
 io.on('connection', (socket) => {
   console.log(`Client connected: ${socket.id}`);
 

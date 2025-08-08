@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001/'; //http://10.28.159.141:5001
+const SIGNALING_SERVER_URL = (process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001/').replace(/\/$/, '');
 const ROOM_ID = 'test-room';
 
 // Quality presets for adaptive streaming
@@ -57,6 +57,14 @@ const LiveStream = () => {
   const networkStats = useRef({ rtt: 0, packetLoss: 0, bandwidth: 0 });
   const chunksRef = useRef([]); // Use ref to store chunks for recording
   const wakeLockRef = useRef(null); // Screen Wake Lock sentinel
+
+  // Redirect to login if no auth token
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.replace('/login');
+    }
+  }, []);
 
   // Auto-start when deep link param autoStart=1 is present (run once on mount)
   useEffect(() => {
@@ -387,7 +395,8 @@ const LiveStream = () => {
     try {
       socket.current = io(SIGNALING_SERVER_URL, {
         transports: ['websocket', 'polling'],
-        timeout: 10000
+        timeout: 10000,
+        auth: { token: localStorage.getItem('authToken') || '' }
       });
 
       updateDebugInfo('Socket.io connected');
@@ -398,7 +407,11 @@ const LiveStream = () => {
 
       socket.current.on('connect_error', (error) => {
         updateDebugInfo('Socket connection error: ' + error.message);
-        setStatus('Signaling connection failed');
+        if (String(error?.message || '').toLowerCase().includes('auth')) {
+          window.location.replace('/login');
+        } else {
+          setStatus('Signaling connection failed');
+        }
       });
 
       socket.current.on('disconnect', (reason) => {
@@ -738,9 +751,11 @@ const LiveStream = () => {
       const filename = `live-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${selectedMimeType.includes('webm') ? 'webm' : 'mp4'}`;
       formData.append('file', blob, filename);
       try {
-        const response = await fetch('http://10.28.159.141:5001/api/recordings', { //http://10.28.159.141:5001/
-          method: 'POST', 
-          body: formData 
+        const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001').replace(/\/$/, '');
+        const response = await fetch(`${API_BASE}/api/recordings`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || ''}` },
+          body: formData
         });
         
         if (response.ok) {

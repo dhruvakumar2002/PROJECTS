@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-const API_URL = 'http://10.28.159.141:5001/api/recordings'; //http://10.28.159.141:5001/
+//const API_URL = 'http://10.28.159.141:5001/api/recordings'; //http://10.28.159.141:5001/
+const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001').replace(/\/$/, '');
+const API_URL = `${API_BASE}/api/recordings`;
 
 // Quality options for download
 const QUALITY_OPTIONS = [
@@ -30,7 +32,9 @@ const Playback = () => {
 
   const fetchRecordings = async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || ''}` }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -59,6 +63,7 @@ const Playback = () => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken') || ''}`
         },
       });
       
@@ -95,7 +100,8 @@ const Playback = () => {
 
   const downloadWithQuality = (quality) => {
     setShowQualityModal(false);
-    const url = `${API_URL}/${downloadId}?quality=${quality}`;
+    const token = localStorage.getItem('authToken') || '';
+    const url = `${API_URL}/${downloadId}?quality=${quality}&token=${encodeURIComponent(token)}`;
     
     // Create a temporary link and trigger download
     const link = document.createElement('a');
@@ -286,7 +292,7 @@ const Playback = () => {
         <div className="mt-8 p-6 bg-slate-700 rounded-lg">
           <h3 className="font-semibold text-xl mb-4 text-gray-100">Now Playing</h3>
           <video
-            src={`${API_URL}/${selected}`}
+            src={`${API_URL}/${selected}?token=${encodeURIComponent(localStorage.getItem('authToken') || '')}`}
             controls
             autoPlay
             className="rounded-lg border border-slate-600 w-full h-96 bg-black shadow-lg"
