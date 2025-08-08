@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import LiveStream from './pages/LiveStream';
-import Record from './pages/Record';
+import Login from './pages/Login';
 import Playback from './pages/Playback';
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001';
+const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001/';
 const ROOM_ID = 'test-room';
 
 function App() {
@@ -70,39 +70,29 @@ function App() {
   return (
     <Router>
 
-      <div className="min-h-screen bg-gray-50" color='red'>
-        <nav className="bg-blue-700 text-white px-6 py-4 flex flex-col md:flex-row items-center justify-between shadow">
+      <div className="min-h-screen bg-slate-900 text-gray-100">
+        <nav className="bg-slate-800 text-gray-100 px-6 py-4 flex flex-col md:flex-row items-center justify-between shadow">
           <div className="font-bold text-2xl mb-2 md:mb-0">AV Streaming</div>
           <div className="flex gap-6">
             <NavLink
               to="/live"
-              className={({ isActive }) =>
-                `hover:underline transition ${isActive ? 'underline font-semibold' : ''}`
-              }
+              className={({ isActive }) => `hover:underline transition ${isActive ? 'underline font-semibold text-white' : 'text-gray-300'}`}
             >
               Live Stream
             </NavLink>
-            <NavLink
-              to="/record"
-              className={({ isActive }) =>
-                `hover:underline transition ${isActive ? 'underline font-semibold' : ''}`
-              }
-            >
-              Record
-            </NavLink>
+            
             <NavLink
               to="/playback"
-              className={({ isActive }) =>
-                `hover:underline transition ${isActive ? 'underline font-semibold' : ''}`
-              }
+              className={({ isActive }) => `hover:underline transition ${isActive ? 'underline font-semibold text-white' : 'text-gray-300'}`}
             >
               Playback
             </NavLink>
           </div>
         </nav>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/live" element={<LiveStream remoteStream={remoteStream} />} />
-          <Route path="/record" element={<Record />} />
+          
           <Route path="/playback" element={<Playback />} />
           <Route path="*" element={<LiveStream remoteStream={remoteStream} />} />
         </Routes>
