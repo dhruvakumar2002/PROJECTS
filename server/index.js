@@ -225,7 +225,7 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Server accessible at:`);
   console.log(`  - Local: http://localhost:${PORT}`);
-  console.log(`  - Network: http://10.28.159.141:${PORT} ` );
+  console.log(`  - Network: http://10.78.191.141:${PORT} ` );
   console.log(`WebRTC signaling server ready`);
   console.log(`Recordings API available at /api/recordings`);
 });
