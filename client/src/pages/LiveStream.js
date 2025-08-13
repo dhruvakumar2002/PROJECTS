@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = (process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001/').replace(/\/$/, '');
+const SIGNALING_SERVER_URL = (process.env.REACT_APP_SIGNALING_URL || 'http://10.78.191.141:5001/').replace(/\/$/, '');
 const ROOM_ID = 'test-room';
 
 // Quality presets for adaptive streaming
@@ -751,7 +751,7 @@ const LiveStream = () => {
       const filename = `live-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${selectedMimeType.includes('webm') ? 'webm' : 'mp4'}`;
       formData.append('file', blob, filename);
       try {
-        const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001').replace(/\/$/, '');
+        const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.78.191.141:5001').replace(/\/$/, '');
         const response = await fetch(`${API_BASE}/api/recordings`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${localStorage.getItem('authToken') || ''}` },
