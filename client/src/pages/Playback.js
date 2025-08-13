@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 //const API_URL = 'http://10.28.159.141:5001/api/recordings'; //http://10.28.159.141:5001/
-const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.28.159.141:5001').replace(/\/$/, '');
+const API_BASE = (process.env.REACT_APP_API_BASE || process.env.REACT_APP_SIGNALING_URL || 'http://10.78.191.141:5001').replace(/\/$/, '');
 const API_URL = `${API_BASE}/api/recordings`;
 
 // Quality options for download
