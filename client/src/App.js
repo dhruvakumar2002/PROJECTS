@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import Playback from './pages/Playback';
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = 'http://10.28.159.141:5001/';
+const SIGNALING_SERVER_URL = 'http://10.78.191.141:5001/';
 const ROOM_ID = 'test-room';
 
 function App() {
