@@ -219,7 +219,7 @@ const Playback = () => {
                 key={rec._id}
                 className="bg-slate-700 rounded-lg shadow-md p-6 border border-slate-600 hover:shadow-lg transition-shadow"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-100 mb-2">
                       {rec.filename || `Recording ${rec._id.slice(-8)}`}
@@ -252,10 +252,10 @@ const Playback = () => {
 </div>
                   </div>
                   
-                  <div className="flex gap-2 mt-4 md:mt-0">
+                  <div className="flex flex-wrap gap-3 mt-6 lg:mt-0">
                     <button
                       onClick={() => playInFullscreen(rec._id)}
-                      className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>▶️</span>
                       <span>Play Fullscreen</span>
@@ -263,7 +263,7 @@ const Playback = () => {
                     
                     <button
                       onClick={() => setSelected(rec._id)}
-                      className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>📺</span>
                       <span>Play in Player</span>
@@ -271,7 +271,7 @@ const Playback = () => {
                     
                     <button
                       onClick={() => handleDownload(rec._id)}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       <span>⬇️</span>
                       <span>Download</span>
@@ -280,7 +280,7 @@ const Playback = () => {
                     <button
                       onClick={() => deleteRecording(rec._id)}
                       disabled={deleting === rec._id}
-                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-lg shadow flex items-center gap-2"
+                      className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-lg shadow flex items-center gap-2"
                     >
                       {deleting === rec._id ? (
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -334,7 +334,7 @@ const Playback = () => {
             
             <button
               onClick={() => setShowQualityModal(false)}
-              className="mt-6 w-full px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              className="mt-6 w-full px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
             >
               Cancel
             </button>
