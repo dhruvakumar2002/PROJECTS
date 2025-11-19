@@ -224,20 +224,32 @@ const Playback = () => {
                     <h3 className="font-semibold text-lg text-gray-100 mb-2">
                       {rec.filename || `Recording ${rec._id.slice(-8)}`}
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-300">
-                      <div>
-                        <span className="font-medium">Size:</span> {formatBytes(rec.length)}
-                      </div>
-                      <div>
-                        <span className="font-medium">Uploaded:</span> {rec.uploadDate ? new Date(rec.uploadDate).toLocaleDateString() : 'Unknown'}
-                      </div>
-                      <div>
-                        <span className="font-medium">Time:</span> {rec.uploadDate ? new Date(rec.uploadDate).toLocaleTimeString() : 'Unknown'}
-                      </div>
-                      <div>
-                        <span className="font-medium">ID:</span> {rec._id.slice(-8)}
-                      </div>
-                    </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4 mt-4 text-sm">
+  <div>
+    <span className="text-gray-500 text-xs font-medium block">Size</span>
+    <p className="text-gray-200 font-medium">{formatBytes(rec.length)}</p>
+  </div>
+  <div>
+    <span className="text-gray-500 text-xs font-medium block">Uploaded</span>
+    <p className="text-gray-200">
+      {rec.uploadDate ? new Date(rec.uploadDate).toLocaleDateString() : 'Unknown'}
+    </p>
+  </div>
+  <div>
+    <span className="text-gray-500 text-xs font-medium block">Time</span>
+    <p className="text-gray-200">
+      {rec.uploadDate 
+        ? new Date(rec.uploadDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'Unknown'}
+    </p>
+  </div>
+  <div>
+    <span className="text-gray-500 text-xs font-medium block">ID</span>
+    <p className="text-gray-200 font-mono text-xs bg-gray-800/70 px-2 py-1 rounded mt-1 inline-block">
+      {rec._id.slice(-12)}
+    </p>
+  </div>
+</div>
                   </div>
                   
                   <div className="flex gap-2 mt-4 md:mt-0">
