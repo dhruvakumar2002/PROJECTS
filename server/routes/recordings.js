@@ -59,26 +59,17 @@ router.get('/', async (req, res) => {
 });
 
 // Stream/download a recording with quality options
-router.get('/:id', async (req, res) => {  // ← make it async now
+router.get('/:id', (req, res) => {
   const { quality = 'original' } = req.query;
-  console.log(`GET /api/recordings/:id - Stream request for ID: ${req.params.id}, quality: ${quality}`);
-
+  console.log(`GET /api/recordings/:id - Stream request received for ID: ${req.params.id} with quality: ${quality}`);
+  
   try {
     checkMongoDB();
     const id = new ObjectId(req.params.id);
-
-    // === ORIGINAL QUALITY (MOST IMPORTANT FIX) ===
+    
+    // If original quality is requested, stream directly
     if (quality === 'original') {
-      const file = await gfs.find({ _id: id }).next();
-      if (!file) return res.status(404).json({ error: 'Recording not found' });
-
-      res.set({
-        'Content-Type': file.contentType || 'video/webm',
-        'Accept-Ranges': 'bytes',
-        'X-Content-Type-Options': 'nosniff',     // ← kills CORB
-        'Cache-Control': 'no-cache',
-      });
-
+      console.log('Streaming original quality');
       return gfs.openDownloadStream(id).pipe(res);
     }
     
